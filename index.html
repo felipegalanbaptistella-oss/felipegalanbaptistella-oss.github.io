@@ -7,12 +7,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <title>Simulação de Redução - Gestão de Riscos</title>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Open Sans', Arial, sans-serif;
@@ -24,7 +20,6 @@
       min-height: 100vh;
       padding: 24px;
     }
-
     .card {
       width: 100%;
       max-width: 500px;
@@ -33,48 +28,39 @@
       padding: 28px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
     }
-
     .logo-wrap {
       display: flex;
       justify-content: center;
       margin-bottom: 18px;
     }
-
     .logo-wrap img {
       width: 100%;
       max-width: 240px;
       height: auto;
       display: block;
     }
-
     h1 {
       margin: 0 0 8px;
       font-size: 26px;
       color: #003A89;
       text-align: center;
-      line-height: 1.25;
     }
-
     p {
       margin: 0 0 24px;
       color: #4b5563;
       line-height: 1.5;
       text-align: center;
     }
-
     .field {
       margin-bottom: 16px;
     }
-
     label {
       display: block;
       margin-bottom: 6px;
       font-weight: 700;
       font-size: 14px;
     }
-
-    input,
-    select {
+    input, select {
       width: 100%;
       padding: 12px 14px;
       border: 1px solid #d1d5db;
@@ -83,13 +69,10 @@
       outline: none;
       background: #fff;
     }
-
-    input:focus,
-    select:focus {
+    input:focus, select:focus {
       border-color: #003A89;
       box-shadow: 0 0 0 3px rgba(0, 58, 137, 0.12);
     }
-
     button {
       width: 100%;
       padding: 14px;
@@ -102,11 +85,9 @@
       cursor: pointer;
       margin-top: 8px;
     }
-
     button:hover {
       opacity: 0.95;
     }
-
     .resultado {
       margin-top: 22px;
       padding: 18px;
@@ -114,27 +95,23 @@
       background: #eef4ff;
       border: 1px solid #cfe0ff;
     }
-
     .resultado strong {
       display: block;
       font-size: 14px;
       color: #003A89;
       margin-bottom: 6px;
     }
-
     .valor {
       font-size: 28px;
       font-weight: 800;
       color: #111827;
     }
-
     .erro {
       margin-top: 14px;
       color: #b91c1c;
       font-size: 14px;
       font-weight: 700;
     }
-
     .formula {
       margin-top: 10px;
       font-size: 13px;
@@ -143,7 +120,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="card">
     <div class="logo-wrap">
@@ -151,10 +127,7 @@
     </div>
 
     <h1>Simulação de Redução - Gestão de Riscos</h1>
-    <p>
-      Escolha o tipo de cálculo e simule rapidamente a relação proporcional entre
-      prêmio e capital segurado.
-    </p>
+    <p>Escolha o tipo de cálculo e simule rapidamente a relação proporcional entre prêmio e capital segurado.</p>
 
     <div class="field">
       <label for="modo">Tipo de cálculo</label>
@@ -183,7 +156,7 @@
 
     <div id="erro" class="erro"></div>
 
-    <div id="resultado" class="resultado" style="display: none;">
+    <div id="resultado" class="resultado" style="display:none;">
       <strong id="tituloResultado">Novo prêmio estimado</strong>
       <div id="valorResultado" class="valor">R$ 0,00</div>
       <div id="formulaResultado" class="formula"></div>
@@ -250,12 +223,10 @@
 
       if (modo === 'premio') {
         calculo = (valorBase1 * valorVariavel) / valorBase2;
-        formulaResultado.textContent =
-          'Fórmula: prêmio atual × novo capital segurado ÷ capital segurado atual';
+        formulaResultado.textContent = 'Fórmula: prêmio atual × novo capital segurado ÷ capital segurado atual';
       } else {
         calculo = (valorBase2 * valorVariavel) / valorBase1;
-        formulaResultado.textContent =
-          'Fórmula: capital segurado atual × novo prêmio desejado ÷ prêmio atual';
+        formulaResultado.textContent = 'Fórmula: capital segurado atual × novo prêmio desejado ÷ prêmio atual';
       }
 
       valorResultado.textContent = formatarMoeda(calculo);
