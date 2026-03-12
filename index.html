@@ -6,61 +6,139 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <title>Simulação de Redução - Gestão de Riscos</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Open Sans', Arial, sans-serif;
       background: #f4f7fb;
       color: #1f2937;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       min-height: 100vh;
       padding: 24px;
     }
+
     .card {
       width: 100%;
-      max-width: 500px;
+      max-width: 940px;
       background: #ffffff;
-      border-radius: 18px;
+      border-radius: 22px;
       padding: 28px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      position: relative;
     }
+
+    .pdf-button {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 12px;
+      background: #eef4ff;
+      color: #003A89;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0, 58, 137, 0.12);
+    }
+
+    .pdf-button:hover {
+      transform: translateY(-1px);
+      background: #dfeaff;
+    }
+
+    .pdf-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
     .logo-wrap {
       display: flex;
       justify-content: center;
-      margin-bottom: 18px;
+      margin: 16px 0 18px;
     }
+
     .logo-wrap img {
       width: 100%;
       max-width: 240px;
       height: auto;
       display: block;
     }
+
     h1 {
       margin: 0 0 8px;
-      font-size: 26px;
+      font-size: 30px;
       color: #003A89;
       text-align: center;
+      line-height: 1.2;
     }
-    p {
-      margin: 0 0 24px;
+
+    .subtext {
+      margin: 0 auto 18px;
+      max-width: 760px;
       color: #4b5563;
-      line-height: 1.5;
+      line-height: 1.55;
       text-align: center;
     }
-    .field {
-      margin-bottom: 16px;
+
+    .status-bar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eef4ff;
+      border: 1px solid #dbe7ff;
+      color: #003A89;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0 auto 22px;
     }
+
+    .status-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 4px;
+    }
+
+    .field {
+      margin-bottom: 2px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
     label {
       display: block;
       margin-bottom: 6px;
       font-weight: 700;
       font-size: 14px;
+      color: #111827;
     }
-    input, select {
+
+    input,
+    select {
       width: 100%;
       padding: 12px 14px;
       border: 1px solid #d1d5db;
@@ -68,12 +146,23 @@
       font-size: 16px;
       outline: none;
       background: #fff;
+      font-family: inherit;
     }
-    input:focus, select:focus {
+
+    input:focus,
+    select:focus {
       border-color: #003A89;
       box-shadow: 0 0 0 3px rgba(0, 58, 137, 0.12);
     }
-    button {
+
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #6b7280;
+    }
+
+    button.primary {
       width: 100%;
       padding: 14px;
       border: none;
@@ -83,156 +172,938 @@
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 8px;
+      margin-top: 18px;
+      font-family: inherit;
     }
-    button:hover {
+
+    button.primary:hover {
       opacity: 0.95;
     }
-    .resultado {
-      margin-top: 22px;
-      padding: 18px;
-      border-radius: 12px;
-      background: #eef4ff;
-      border: 1px solid #cfe0ff;
+
+    button.primary:disabled {
+      opacity: 0.7;
+      cursor: wait;
     }
-    .resultado strong {
-      display: block;
-      font-size: 14px;
-      color: #003A89;
-      margin-bottom: 6px;
-    }
-    .valor {
-      font-size: 28px;
-      font-weight: 800;
-      color: #111827;
-    }
+
     .erro {
       margin-top: 14px;
       color: #b91c1c;
       font-size: 14px;
       font-weight: 700;
     }
-    .formula {
-      margin-top: 10px;
+
+    .resultado {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 16px;
+      background: #eef4ff;
+      border: 1px solid #cfe0ff;
+      display: none;
+    }
+
+    .resultado-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .resultado-title {
+      color: #003A89;
+      font-size: 15px;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .valor-principal {
+      font-size: 34px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 12px;
+    }
+
+    .formula,
+    .obs {
       font-size: 13px;
+      line-height: 1.6;
       color: #4b5563;
-      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .summary-item {
+      background: #ffffff;
+      border: 1px solid #dbe7ff;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .summary-item span {
+      display: block;
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .summary-item strong {
+      display: block;
+      font-size: 15px;
+      color: #111827;
+      line-height: 1.45;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-top: 22px;
+      display: none;
+    }
+
+    .chart-card {
+      padding: 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .chart-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #003A89;
+      margin-bottom: 4px;
+    }
+
+    .chart-subtitle {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 14px;
+      line-height: 1.55;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    .disclaimer {
+      margin-top: 18px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #6b7280;
+    }
+
+    @media (max-width: 860px) {
+      .form-grid,
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .card {
+        padding: 22px 18px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="card">
+    <button id="btnPdf" class="pdf-button" type="button" onclick="baixarPDF()" title="Baixar PDF" disabled>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 3V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M5 19H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
     <div class="logo-wrap">
       <img src="./Logo AV oficial sem fundo.png" alt="Logo AltaVista XP" />
     </div>
 
     <h1>Simulação de Redução - Gestão de Riscos</h1>
-    <p>Escolha o tipo de cálculo e simule rapidamente a relação proporcional entre prêmio e capital segurado.</p>
+    <p class="subtext">
+      Simulação para seguro de Vida WL10 com atualização pelo IPCA, usando dados do Banco Central do Brasil.
+      A reserva exibida é estimada a partir do 25º mês de pagamento e não substitui o cálculo oficial da seguradora.
+    </p>
 
-    <div class="field">
-      <label for="modo">Tipo de cálculo</label>
-      <select id="modo" onchange="atualizarModo()">
-        <option value="premio">Calcular novo prêmio</option>
-        <option value="capital">Calcular novo capital segurado</option>
-      </select>
+    <div class="status-wrap">
+      <div id="ipcaStatus" class="status-bar">IPCA/BCB: aguardando cálculo</div>
     </div>
 
-    <div class="field">
-      <label for="valorBase1" id="labelBase1">Prêmio atual (R$)</label>
-      <input type="number" id="valorBase1" placeholder="Ex: 150000" step="0.01" />
+    <div class="form-grid">
+      <div class="field full">
+        <label for="nomeCliente">Nome do cliente</label>
+        <input type="text" id="nomeCliente" placeholder="Ex: Maria da Silva" />
+      </div>
+
+      <div class="field">
+        <label for="dataInicio">Data de início da cobertura</label>
+        <input type="date" id="dataInicio" />
+      </div>
+
+      <div class="field">
+        <label for="modo">Tipo de cálculo</label>
+        <select id="modo" onchange="atualizarModo()">
+          <option value="premio">Calcular novo prêmio anual</option>
+          <option value="capital">Calcular novo capital segurado</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="capitalInicial">Capital segurado no início da apólice (R$)</label>
+        <input type="number" id="capitalInicial" placeholder="Ex: 2500000" step="0.01" />
+      </div>
+
+      <div class="field">
+        <label for="premioInicial">Prêmio anual no início da apólice (R$)</label>
+        <input type="number" id="premioInicial" placeholder="Ex: 150000" step="0.01" />
+      </div>
+
+      <div class="field">
+        <label for="capitalAtual">Capital segurado atual (R$)</label>
+        <input type="number" id="capitalAtual" placeholder="Ex: 2800000" step="0.01" />
+      </div>
+
+      <div class="field">
+        <label for="premioAtual">Prêmio anual atual (R$)</label>
+        <input type="number" id="premioAtual" placeholder="Ex: 170000" step="0.01" />
+      </div>
+
+      <div class="field full">
+        <label for="valorVariavel" id="labelVariavel">Novo capital segurado desejado (R$)</label>
+        <input type="number" id="valorVariavel" placeholder="Ex: 2000000" step="0.01" />
+        <div class="hint" id="hintVariavel">Informe o novo capital segurado desejado para estimar o novo prêmio anual.</div>
+      </div>
     </div>
 
-    <div class="field">
-      <label for="valorBase2" id="labelBase2">Capital segurado atual (R$)</label>
-      <input type="number" id="valorBase2" placeholder="Ex: 2500000" step="0.01" />
-    </div>
-
-    <div class="field">
-      <label for="valorVariavel" id="labelVariavel">Novo capital segurado (R$)</label>
-      <input type="number" id="valorVariavel" placeholder="Ex: 2000000" step="0.01" />
-    </div>
-
-    <button id="botaoCalcular" onclick="calcular()">Calcular novo prêmio</button>
+    <button class="primary" id="botaoCalcular" onclick="calcular()">Calcular simulação</button>
 
     <div id="erro" class="erro"></div>
 
-    <div id="resultado" class="resultado" style="display:none;">
-      <strong id="tituloResultado">Novo prêmio estimado</strong>
-      <div id="valorResultado" class="valor">R$ 0,00</div>
+    <div id="resultado" class="resultado">
+      <div class="resultado-header">
+        <div>
+          <div class="resultado-title" id="tituloResultado">Resultado da simulação</div>
+          <div class="valor-principal" id="valorResultado">R$ 0,00</div>
+        </div>
+      </div>
+
       <div id="formulaResultado" class="formula"></div>
+      <div class="obs" id="obsResultado"></div>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span>Cliente</span>
+          <strong id="resCliente">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Data de início da cobertura</span>
+          <strong id="resDataInicio">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Data da simulação</span>
+          <strong id="resDataSimulacao">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Capital inicial</span>
+          <strong id="resCapitalInicial">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Prêmio anual inicial</span>
+          <strong id="resPremioInicial">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>IPCA acumulado no período</span>
+          <strong id="resIpcaAcumulado">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Capital atual</span>
+          <strong id="resCapitalAtual">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Prêmio anual atual</span>
+          <strong id="resPremioAtual">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Meses pagos até a simulação</span>
+          <strong id="resMesesPagos">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Novo capital segurado</span>
+          <strong id="resNovoCapital">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Novo prêmio anual</span>
+          <strong id="resNovoPremio">-</strong>
+        </div>
+        <div class="summary-item">
+          <span>Reserva estimada pela PMBaC corrigida pelo IPCA</span>
+          <strong id="resReserva">-</strong>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        Essa simulação considera WL10 com pagamento por até 10 anos e reserva estimada pela tabela de PMBaC a partir do 25º mês, com correção pelo IPCA.
+      </div>
+    </div>
+
+    <div id="chartsGrid" class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Evolução do capital segurado</div>
+        <div class="chart-subtitle">Trajetória estimada corrigida pelo IPCA até a data da simulação e impacto no momento da redução.</div>
+        <canvas id="graficoCapital" height="110"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Evolução do prêmio anual</div>
+        <div class="chart-subtitle">Prêmio anual estimado no período, com destaque para a redução simulada na data da análise.</div>
+        <canvas id="graficoPremio" height="110"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Evolução da reserva estimada</div>
+        <div class="chart-subtitle">Reserva estimada pelo acúmulo dos pagamentos mensais do 25º ao 120º mês, corrigidos pelo IPCA até a data da simulação.</div>
+        <canvas id="graficoReserva" height="110"></canvas>
+      </div>
     </div>
   </div>
 
   <script>
+    const BCB_IPCA_SERIES = 433;
+    const WL10_MESES_PAGAMENTO = 120;
+    const WL10_INICIO_RESERVA = 24;
+    const PMBAC_FAIXAS = [
+      { inicio: 1, fim: 24, percentual: 0.00 },
+      { inicio: 25, fim: 36, percentual: 0.15 },
+      { inicio: 37, fim: 48, percentual: 0.20 },
+      { inicio: 49, fim: 60, percentual: 0.40 },
+      { inicio: 61, fim: 72, percentual: 0.50 },
+      { inicio: 73, fim: 84, percentual: 0.70 },
+      { inicio: 85, fim: 96, percentual: 0.90 },
+      { inicio: 97, fim: 120, percentual: 0.95 }
+    ];
+
+    let chartCapital = null;
+    let chartPremio = null;
+    let chartReserva = null;
+    let ultimoResultado = null;
+
     function formatarMoeda(valor) {
       return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
         currency: 'BRL'
-      }).format(valor);
+      }).format(Number(valor || 0));
+    }
+
+    function formatarPercentual(valor) {
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(Number(valor || 0)) + '%';
+    }
+
+    function formatarDataBR(dataISO) {
+      if (!dataISO) return '-';
+      const partes = dataISO.split('-');
+      if (partes.length !== 3) return dataISO;
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function formatarMesAno(data) {
+      return new Intl.DateTimeFormat('pt-BR', {
+        month: 'short',
+        year: '2-digit'
+      }).format(data);
+    }
+
+    function toISODate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function hojeISO() {
+      return toISODate(new Date());
+    }
+
+    function primeiroDiaDoMes(date) {
+      return new Date(date.getFullYear(), date.getMonth(), 1);
+    }
+
+    function addMonths(date, months) {
+      return new Date(date.getFullYear(), date.getMonth() + months, 1);
+    }
+
+    function diffMeses(startISO, endISO) {
+      const start = new Date(startISO + 'T00:00:00');
+      const end = new Date(endISO + 'T00:00:00');
+      return Math.max(0, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+    }
+
+    function montarLinhaMeses(startISO, endISO) {
+      const start = primeiroDiaDoMes(new Date(startISO + 'T00:00:00'));
+      const end = primeiroDiaDoMes(new Date(endISO + 'T00:00:00'));
+      const meses = [];
+      let cursor = new Date(start);
+      while (cursor <= end) {
+        meses.push(new Date(cursor));
+        cursor = addMonths(cursor, 1);
+      }
+      return meses;
+    }
+
+    function monthKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`;
+    }
+
+    function ddmmyyyy(date) {
+      const d = String(date.getDate()).padStart(2, '0');
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const y = date.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+
+    function limparGraficos() {
+      if (chartCapital) chartCapital.destroy();
+      if (chartPremio) chartPremio.destroy();
+      if (chartReserva) chartReserva.destroy();
+      chartCapital = null;
+      chartPremio = null;
+      chartReserva = null;
     }
 
     function atualizarModo() {
       const modo = document.getElementById('modo').value;
       const labelVariavel = document.getElementById('labelVariavel');
-      const inputVariavel = document.getElementById('valorVariavel');
+      const hintVariavel = document.getElementById('hintVariavel');
+
+      if (modo === 'premio') {
+        labelVariavel.textContent = 'Novo capital segurado desejado (R$)';
+        document.getElementById('valorVariavel').placeholder = 'Ex: 2000000';
+        hintVariavel.textContent = 'Informe o novo capital segurado desejado para estimar o novo prêmio anual.';
+      } else {
+        labelVariavel.textContent = 'Novo prêmio anual desejado (R$)';
+        document.getElementById('valorVariavel').placeholder = 'Ex: 120000';
+        hintVariavel.textContent = 'Informe o novo prêmio anual desejado para estimar o novo capital segurado.';
+      }
+    }
+
+    async function consultarIpca(startISO, endISO) {
+      const inicio = primeiroDiaDoMes(new Date(startISO + 'T00:00:00'));
+      const fim = primeiroDiaDoMes(new Date(endISO + 'T00:00:00'));
+      const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.${BCB_IPCA_SERIES}/dados?formato=json&dataInicial=${ddmmyyyy(inicio)}&dataFinal=${ddmmyyyy(fim)}`;
+      const resposta = await fetch(url);
+
+      if (!resposta.ok) {
+        throw new Error('Não foi possível consultar o IPCA no Banco Central do Brasil.');
+      }
+
+      const dados = await resposta.json();
+
+      if (!Array.isArray(dados) || dados.length === 0) {
+        throw new Error('O Banco Central do Brasil não retornou dados de IPCA para o período informado.');
+      }
+
+      const mapa = {};
+      dados.forEach(item => {
+        const partes = String(item.data || '').split('/');
+        const valor = Number(String(item.valor || '').replace(',', '.'));
+        if (partes.length === 3 && !Number.isNaN(valor)) {
+          mapa[`${partes[2]}-${partes[1]}`] = valor;
+        }
+      });
+
+      const ultimo = dados[dados.length - 1];
+      return {
+        mapa,
+        ultimaReferencia: ultimo ? ultimo.data : null,
+        url
+      };
+    }
+
+    function fatorInflacaoAteMes(dataMes, linhaMeses, mapaIpca) {
+      let fator = 1;
+      for (let i = 1; i < linhaMeses.length; i += 1) {
+        const mes = linhaMeses[i];
+        if (mes <= dataMes) {
+          const taxa = mapaIpca[monthKey(mes)] || 0;
+          fator *= 1 + (taxa / 100);
+        }
+      }
+      return fator;
+    }
+
+    function construirSeriePreReducao(valorInicial, valorAtual, linhaMeses, mapaIpca) {
+      const totalMeses = Math.max(1, linhaMeses.length - 1);
+      const fatorFinal = fatorInflacaoAteMes(linhaMeses[linhaMeses.length - 1], linhaMeses, mapaIpca);
+      const ajusteReal = valorInicial > 0 ? (valorAtual / (valorInicial * fatorFinal || 1)) : 1;
+      const serie = [];
+
+      for (let i = 0; i < linhaMeses.length; i += 1) {
+        const fatorInflacao = fatorInflacaoAteMes(linhaMeses[i], linhaMeses, mapaIpca);
+        const frac = i / totalMeses;
+        const ajusteNoPonto = Math.pow(ajusteReal > 0 ? ajusteReal : 1, frac);
+        serie.push(valorInicial * fatorInflacao * ajusteNoPonto);
+      }
+
+      if (serie.length > 0) {
+        serie[serie.length - 1] = valorAtual;
+      }
+
+      return serie;
+    }
+
+    function percentualPMBaC(mesDecorrido) {
+      const faixa = PMBAC_FAIXAS.find(item => mesDecorrido >= item.inicio && mesDecorrido <= item.fim);
+      return faixa ? faixa.percentual : PMBAC_FAIXAS[PMBAC_FAIXAS.length - 1].percentual;
+    }
+
+    function construirReserva(seriePremioAnual, linhaMeses, mapaIpca) {
+      let premiosAcumuladosCorrigidos = 0;
+      const serieReserva = [];
+
+      for (let i = 0; i < linhaMeses.length; i += 1) {
+        if (i > 0) {
+          const taxaMes = mapaIpca[monthKey(linhaMeses[i])] || 0;
+          premiosAcumuladosCorrigidos *= 1 + (taxaMes / 100);
+        }
+
+        if (i < WL10_MESES_PAGAMENTO) {
+          const premioMensal = Math.max(0, seriePremioAnual[i] || 0) / 12;
+          premiosAcumuladosCorrigidos += premioMensal;
+        }
+
+        const mesDecorrido = i + 1;
+        const fatorPMBaC = percentualPMBaC(mesDecorrido);
+        const reservaMes = premiosAcumuladosCorrigidos * fatorPMBaC;
+        serieReserva.push(reservaMes);
+      }
+
+      return serieReserva;
+    }
+
+    function renderizarGraficoCapital(labels, serieCapitalAntes, serieCapitalReducao) {
+      const ctx = document.getElementById('graficoCapital').getContext('2d');
+      if (chartCapital) chartCapital.destroy();
+
+      chartCapital = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Capital até a simulação',
+              data: serieCapitalAntes,
+              borderColor: '#003A89',
+              backgroundColor: 'rgba(0, 58, 137, 0.08)',
+              borderWidth: 3,
+              tension: 0.25,
+              spanGaps: false,
+              pointRadius: 0
+            },
+            {
+              label: 'Impacto da redução',
+              data: serieCapitalReducao,
+              borderColor: '#A07A12',
+              backgroundColor: 'rgba(160, 122, 18, 0.10)',
+              borderWidth: 3,
+              tension: 0,
+              spanGaps: true,
+              pointRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (context) => `${context.dataset.label}: ${formatarMoeda(context.raw)}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (value) => formatarMoeda(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderizarGraficoPremio(labels, seriePremioAntes, seriePremioReducao) {
+      const ctx = document.getElementById('graficoPremio').getContext('2d');
+      if (chartPremio) chartPremio.destroy();
+
+      chartPremio = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Prêmio anual até a simulação',
+              data: seriePremioAntes,
+              borderColor: '#003A89',
+              backgroundColor: 'rgba(0, 58, 137, 0.08)',
+              borderWidth: 3,
+              tension: 0.25,
+              spanGaps: false,
+              pointRadius: 0
+            },
+            {
+              label: 'Impacto da redução',
+              data: seriePremioReducao,
+              borderColor: '#A07A12',
+              backgroundColor: 'rgba(160, 122, 18, 0.10)',
+              borderWidth: 3,
+              tension: 0,
+              spanGaps: true,
+              pointRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (context) => `${context.dataset.label}: ${formatarMoeda(context.raw)}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (value) => formatarMoeda(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderizarGraficoReserva(labels, serieReserva) {
+      const ctx = document.getElementById('graficoReserva').getContext('2d');
+      if (chartReserva) chartReserva.destroy();
+
+      chartReserva = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Reserva estimada pela PMBaC corrigida pelo IPCA',
+              data: serieReserva,
+              borderColor: '#003A89',
+              backgroundColor: 'rgba(0, 58, 137, 0.08)',
+              borderWidth: 3,
+              tension: 0.25,
+              fill: true,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: (context) => `${context.dataset.label}: ${formatarMoeda(context.raw)}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (value) => formatarMoeda(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function preencherResumo(resultado) {
+      document.getElementById('resCliente').textContent = resultado.nomeCliente || '-';
+      document.getElementById('resDataInicio').textContent = formatarDataBR(resultado.dataInicio);
+      document.getElementById('resDataSimulacao').textContent = formatarDataBR(resultado.dataSimulacao);
+      document.getElementById('resCapitalInicial').textContent = formatarMoeda(resultado.capitalInicial);
+      document.getElementById('resPremioInicial').textContent = formatarMoeda(resultado.premioInicial);
+      document.getElementById('resIpcaAcumulado').textContent = formatarPercentual(resultado.ipcaAcumulado);
+      document.getElementById('resCapitalAtual').textContent = formatarMoeda(resultado.capitalAtual);
+      document.getElementById('resPremioAtual').textContent = formatarMoeda(resultado.premioAtual);
+      document.getElementById('resMesesPagos').textContent = `${resultado.mesesPagos} meses`;
+      document.getElementById('resNovoCapital').textContent = formatarMoeda(resultado.novoCapital);
+      document.getElementById('resNovoPremio').textContent = formatarMoeda(resultado.novoPremio);
+      document.getElementById('resReserva').textContent = formatarMoeda(resultado.reservaEstimada);
+    }
+
+    async function calcular() {
       const botao = document.getElementById('botaoCalcular');
-      const tituloResultado = document.getElementById('tituloResultado');
-      const resultado = document.getElementById('resultado');
       const erro = document.getElementById('erro');
+      const btnPdf = document.getElementById('btnPdf');
+      const chartsGrid = document.getElementById('chartsGrid');
+      const resultado = document.getElementById('resultado');
+      const status = document.getElementById('ipcaStatus');
 
       erro.textContent = '';
       resultado.style.display = 'none';
+      chartsGrid.style.display = 'none';
+      btnPdf.disabled = true;
+      ultimoResultado = null;
+      limparGraficos();
 
-      if (modo === 'premio') {
-        labelVariavel.textContent = 'Novo capital segurado (R$)';
-        inputVariavel.placeholder = 'Ex: 2000000';
-        botao.textContent = 'Calcular novo prêmio';
-        tituloResultado.textContent = 'Novo prêmio estimado';
-      } else {
-        labelVariavel.textContent = 'Novo prêmio desejado (R$)';
-        inputVariavel.placeholder = 'Ex: 120000';
-        botao.textContent = 'Calcular novo capital segurado';
-        tituloResultado.textContent = 'Novo capital segurado estimado';
-      }
-    }
-
-    function calcular() {
+      const nomeCliente = document.getElementById('nomeCliente').value.trim();
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataSimulacao = hojeISO();
       const modo = document.getElementById('modo').value;
-      const valorBase1 = parseFloat(document.getElementById('valorBase1').value);
-      const valorBase2 = parseFloat(document.getElementById('valorBase2').value);
-      const valorVariavel = parseFloat(document.getElementById('valorVariavel').value);
-      const erro = document.getElementById('erro');
-      const resultado = document.getElementById('resultado');
-      const valorResultado = document.getElementById('valorResultado');
-      const formulaResultado = document.getElementById('formulaResultado');
+      const capitalInicial = Number(document.getElementById('capitalInicial').value);
+      const premioInicial = Number(document.getElementById('premioInicial').value);
+      const capitalAtual = Number(document.getElementById('capitalAtual').value);
+      const premioAtual = Number(document.getElementById('premioAtual').value);
+      const valorVariavel = Number(document.getElementById('valorVariavel').value);
 
-      erro.textContent = '';
-      resultado.style.display = 'none';
-
-      if (!valorBase1 || !valorBase2 || !valorVariavel) {
-        erro.textContent = 'Preencha todos os campos para calcular.';
+      if (!nomeCliente || !dataInicio || !capitalInicial || !premioInicial || !capitalAtual || !Number.isFinite(valorVariavel) || valorVariavel <= 0) {
+        erro.textContent = 'Preencha nome do cliente, data de início e todos os valores da simulação.';
         return;
       }
 
-      if (valorBase1 <= 0 || valorBase2 <= 0 || valorVariavel <= 0) {
-        erro.textContent = 'Os valores devem ser maiores que zero.';
+      if (capitalInicial <= 0 || premioInicial <= 0 || capitalAtual <= 0) {
+        erro.textContent = 'Capital inicial, prêmio inicial e capital atual devem ser maiores que zero.';
         return;
       }
 
-      let calculo = 0;
-
-      if (modo === 'premio') {
-        calculo = (valorBase1 * valorVariavel) / valorBase2;
-        formulaResultado.textContent = 'Fórmula: prêmio atual × novo capital segurado ÷ capital segurado atual';
-      } else {
-        calculo = (valorBase2 * valorVariavel) / valorBase1;
-        formulaResultado.textContent = 'Fórmula: capital segurado atual × novo prêmio desejado ÷ prêmio atual';
+      if (modo === 'capital' && premioAtual <= 0) {
+        erro.textContent = 'Para calcular o novo capital segurado, o prêmio anual atual deve ser maior que zero.';
+        return;
       }
 
-      valorResultado.textContent = formatarMoeda(calculo);
-      resultado.style.display = 'block';
+      if (modo === 'premio' && premioAtual < 0) {
+        erro.textContent = 'O prêmio anual atual não pode ser negativo.';
+        return;
+      }
+
+      if (dataInicio > dataSimulacao) {
+        erro.textContent = 'A data de início da cobertura não pode ser posterior à data da simulação.';
+        return;
+      }
+
+      botao.disabled = true;
+      botao.textContent = 'Consultando IPCA do Banco Central...';
+      status.textContent = 'IPCA/BCB: consultando dados oficiais...';
+
+      try {
+        const ipca = await consultarIpca(dataInicio, dataSimulacao);
+        const linhaMeses = montarLinhaMeses(dataInicio, dataSimulacao);
+        const mesesPagos = Math.min(diffMeses(dataInicio, dataSimulacao) + 1, WL10_MESES_PAGAMENTO);
+        const serieCapitalPre = construirSeriePreReducao(capitalInicial, capitalAtual, linhaMeses, ipca.mapa);
+        const seriePremioPreBruta = construirSeriePreReducao(premioInicial, Math.max(premioAtual, 0), linhaMeses, ipca.mapa);
+        const seriePremioPre = seriePremioPreBruta.map((valor, idx) => idx < WL10_MESES_PAGAMENTO ? valor : 0);
+        const serieReservaPre = construirReserva(seriePremioPre, linhaMeses, ipca.mapa);
+
+        let novoCapital = 0;
+        let novoPremio = 0;
+        let formulaTexto = '';
+        let valorPrincipal = 0;
+
+        if (modo === 'premio') {
+          novoCapital = valorVariavel;
+          novoPremio = (premioAtual * novoCapital) / capitalAtual;
+          valorPrincipal = novoPremio;
+          formulaTexto = 'Fórmula aplicada: prêmio anual atual × novo capital segurado ÷ capital segurado atual.';
+        } else {
+          novoPremio = valorVariavel;
+          novoCapital = (capitalAtual * novoPremio) / premioAtual;
+          valorPrincipal = novoCapital;
+          formulaTexto = 'Fórmula aplicada: capital segurado atual × novo prêmio anual desejado ÷ prêmio anual atual.';
+        }
+
+        const fatorFinal = fatorInflacaoAteMes(linhaMeses[linhaMeses.length - 1], linhaMeses, ipca.mapa);
+        const ipcaAcumulado = (fatorFinal - 1) * 100;
+
+        const labels = linhaMeses.map(data => formatarMesAno(data));
+        labels.push('Após redução');
+
+        const serieCapitalAntes = [...serieCapitalPre, null];
+        const seriePremioAntes = [...seriePremioPre, null];
+        const serieReserva = [...serieReservaPre, serieReservaPre[serieReservaPre.length - 1] || 0];
+
+        const serieCapitalReducao = new Array(labels.length).fill(null);
+        const seriePremioReducao = new Array(labels.length).fill(null);
+        serieCapitalReducao[labels.length - 2] = capitalAtual;
+        serieCapitalReducao[labels.length - 1] = novoCapital;
+        seriePremioReducao[labels.length - 2] = premioAtual;
+        seriePremioReducao[labels.length - 1] = novoPremio;
+
+        ultimoResultado = {
+          nomeCliente,
+          dataInicio,
+          dataSimulacao,
+          modo,
+          capitalInicial,
+          premioInicial,
+          capitalAtual,
+          premioAtual,
+          novoCapital,
+          novoPremio,
+          valorPrincipal,
+          mesesPagos,
+          reservaEstimada: serieReservaPre[serieReservaPre.length - 1] || 0,
+          ipcaAcumulado,
+          ipcaUltimaReferencia: ipca.ultimaReferencia,
+          ipcaUrl: ipca.url,
+          labels,
+          series: {
+            capitalAntes: serieCapitalAntes,
+            capitalReducao: serieCapitalReducao,
+            premioAntes: seriePremioAntes,
+            premioReducao: seriePremioReducao,
+            reserva: serieReserva
+          },
+          formulaTexto,
+          observacao: 'Reserva estimada pela aplicação da tabela de PMBaC sobre os prêmios mensais acumulados e corrigidos pelo IPCA do BCB.'
+        };
+
+        document.getElementById('tituloResultado').textContent = modo === 'premio'
+          ? 'Novo prêmio anual estimado'
+          : 'Novo capital segurado estimado';
+        document.getElementById('valorResultado').textContent = formatarMoeda(valorPrincipal);
+        document.getElementById('formulaResultado').textContent = formulaTexto;
+        document.getElementById('obsResultado').textContent = ultimoResultado.observacao;
+
+        preencherResumo(ultimoResultado);
+        renderizarGraficoCapital(labels, serieCapitalAntes, serieCapitalReducao);
+        renderizarGraficoPremio(labels, seriePremioAntes, seriePremioReducao);
+        renderizarGraficoReserva(labels, serieReserva);
+
+        status.textContent = `IPCA/BCB série 433 • última referência: ${ipca.ultimaReferencia || '-'} • acumulado no período: ${formatarPercentual(ipcaAcumulado)}`;
+        resultado.style.display = 'block';
+        chartsGrid.style.display = 'grid';
+        btnPdf.disabled = false;
+      } catch (e) {
+        erro.textContent = e.message || 'Ocorreu um erro ao gerar a simulação.';
+        status.textContent = 'IPCA/BCB: não foi possível consultar os dados oficiais agora.';
+      } finally {
+        botao.disabled = false;
+        botao.textContent = 'Calcular simulação';
+      }
     }
 
+    function imagemParaDataURL(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = function() {
+          resolve(null);
+        };
+        img.src = src;
+      });
+    }
+
+    function addWrappedText(doc, text, x, y, width, lineHeight) {
+      const linhas = doc.splitTextToSize(text, width);
+      doc.text(linhas, x, y);
+      return y + (linhas.length * lineHeight);
+    }
+
+    async function baixarPDF() {
+      if (!ultimoResultado) return;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const margemX = 15;
+      const larguraUtil = 180;
+      const logo = await imagemParaDataURL('./Logo AV oficial sem fundo.png');
+
+      if (logo) {
+        doc.addImage(logo, 'PNG', 15, 10, 52, 16);
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.text('Simulação de Redução de Capital Segurado - Gestão de Riscos', 15, 34);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      let y = 44;
+      y = addWrappedText(doc, `Cliente: ${ultimoResultado.nomeCliente}`, margemX, y, larguraUtil, 5);
+      y = addWrappedText(doc, `Data de início da cobertura: ${formatarDataBR(ultimoResultado.dataInicio)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Data da simulação: ${formatarDataBR(ultimoResultado.dataSimulacao)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Capital segurado no início da apólice: ${formatarMoeda(ultimoResultado.capitalInicial)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Prêmio anual no início da apólice: ${formatarMoeda(ultimoResultado.premioInicial)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Capital segurado atual: ${formatarMoeda(ultimoResultado.capitalAtual)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Prêmio anual atual: ${formatarMoeda(ultimoResultado.premioAtual)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Novo capital segurado estimado: ${formatarMoeda(ultimoResultado.novoCapital)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Novo prêmio anual estimado: ${formatarMoeda(ultimoResultado.novoPremio)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `Reserva estimada pela PMBaC corrigida pelo IPCA: ${formatarMoeda(ultimoResultado.reservaEstimada)}`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, `IPCA acumulado no período: ${formatarPercentual(ultimoResultado.ipcaAcumulado)} | Fonte: BCB/SGS série 433 (${ultimoResultado.ipcaUltimaReferencia || '-'})`, margemX, y + 1, larguraUtil, 5);
+      y = addWrappedText(doc, ultimoResultado.formulaTexto, margemX, y + 3, larguraUtil, 5);
+      y = addWrappedText(doc, ultimoResultado.observacao, margemX, y + 1, larguraUtil, 5);
+
+      const capitalImg = document.getElementById('graficoCapital').toDataURL('image/png', 1.0);
+      doc.setFont('helvetica', 'bold');
+      doc.text('1. Evolução do capital segurado', 15, y + 8);
+      doc.addImage(capitalImg, 'PNG', 12, y + 12, 186, 62);
+
+      doc.addPage();
+      const premioImg = document.getElementById('graficoPremio').toDataURL('image/png', 1.0);
+      const reservaImg = document.getElementById('graficoReserva').toDataURL('image/png', 1.0);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.text('2. Evolução do prêmio anual', 15, 18);
+      doc.addImage(premioImg, 'PNG', 12, 22, 186, 62);
+
+      doc.text('3. Evolução da reserva estimada', 15, 96);
+      doc.addImage(reservaImg, 'PNG', 12, 100, 186, 62);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      const disclaimer = 'Essa simulação é uma estimativa de valores e não substitui a simulação oficial fornecida pela respectiva seguradora em que a apólice foi emitida.';
+      addWrappedText(doc, disclaimer, 15, 276, 180, 4);
+
+      const nomeArquivoBase = (ultimoResultado.nomeCliente || 'cliente')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      doc.save(`simulacao-reducao-capital-segurado-${nomeArquivoBase || 'cliente'}.pdf`);
+    }
+
+    document.getElementById('dataInicio').value = hojeISO();
     atualizarModo();
   </script>
 </body>
